@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 func main() {
-	fmt.Println("meu primeiro Crud")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+		fmt.Fprint(w, "meu primeiro Crud")
+	})
+	http.ListenAndServe(":1337", nil) //	DefaultServerMux
+
 }

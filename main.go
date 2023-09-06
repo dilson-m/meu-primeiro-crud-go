@@ -5,11 +5,23 @@ import (
 	"net/http"
 )
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+var port = 1337
 
-		fmt.Fprint(w, "meu primeiro Crud")
-	})
+func rotaPrincipal(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "meu primeiro Crud")
+}
+
+func configurarRotas() {
+	http.HandleFunc("/", rotaPrincipal)
+}
+
+func configurarServidor() {
+	configurarRotas()
+
+	fmt.Print("Servidor esta rodando na porta: ", port)
 	http.ListenAndServe(":1337", nil) //	DefaultServerMux
+}
 
+func main() {
+	configurarServidor()
 }

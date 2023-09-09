@@ -11,9 +11,9 @@ import (
 var port = 1337
 
 type Livro struct {
-	Id     int
-	Titulo string
-	Autor  string
+	Id     int    `json:"id"`
+	Titulo string `json:"titulo"`
+	Autor  string `json:"autor"`
 }
 
 var Livros []Livro = []Livro{
@@ -51,6 +51,8 @@ func listarLivros(w http.ResponseWriter, r *http.Request) {
 // Inclcuir livro na biblioteca
 func cadastrarLivro(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
+	// alatera o status da requisicao de 200(StatusOK) para 201(StatusCreated)
+	w.WriteHeader(http.StatusCreated)
 
 	//	Monstra o 1o registro setado na posiccao 0
 	// encoder := json.NewEncoder(w)

@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 var port = 1337
@@ -83,10 +85,40 @@ func rotearLivros(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// pesquisar livro por Id e apresentar
+func buscarLivro(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	partes := strings.Split(r.URL.Path, "/")
+	// fmt.Printf("Parte 2: %s", partes[2])
+	// fmt.Printf("Quantas partes: %d", len(partes))
+
+	if len(partes) > 3 {
+		w.WriteHeader(http.StatusNotFound)
+		// fmt.Println("passei")
+		return
+	}
+
+	id, _ := strconv.Atoi(partes[2])
+	// fmt.Println(id)
+	// fmt.Println(partes[2])
+
+	for _, livro := range Livros {
+		if livro.Id == id {
+			json.NewEncoder(w).Encode(livro)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusNotFound)
+}
+
 // Congiracao de rotas
 func configurarRotas() {
 	http.HandleFunc("/", rotaPrincipal)
 	http.HandleFunc("/livros", rotearLivros)
+
+	// e.g. /livros/123
+	http.HandleFunc("/livros/", buscarLivro)
+
 }
 
 // Define e habilita sesvidor HTTP

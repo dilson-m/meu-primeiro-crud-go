@@ -101,6 +101,50 @@ func deleteLivro(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// funcao modificarLivro
+func modificarLivro(w http.ResponseWriter, r *http.Request) {
+	partes := strings.Split(r.URL.Path, "/")
+	id, erroConv := strconv.Atoi(partes[2])
+
+	if erroConv != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	indiceDoLivro := -1
+	for ind, cont := range Livros {
+		if cont.Id == id { //	Cont = conteudo
+			indiceDoLivro = ind
+			break
+		}
+	}
+
+	if indiceDoLivro < 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	body, erroBody := ioutil.ReadAll(r.Body)
+
+	if erroBody != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var livroModificado Livro
+	erroJon := json.Unmarshal(body, &livroModificado)
+
+	if erroJon != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	Livros[indiceDoLivro] = livroModificado
+
+	json.NewEncoder(w).Encode(livroModificado)
+
+}
+
 // Define rotas / operacoes da API
 func rotearLivros(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
@@ -119,6 +163,8 @@ func rotearLivros(w http.ResponseWriter, r *http.Request) {
 			buscarLivro(w, r)
 		} else if r.Method == "DELETE" {
 			deleteLivro(w, r)
+		} else if r.Method == "PUT" {
+			modificarLivro(w, r)
 		}
 	}
 

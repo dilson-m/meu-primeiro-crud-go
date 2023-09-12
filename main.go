@@ -43,16 +43,12 @@ func rotaPrincipal(w http.ResponseWriter, r *http.Request) {
 
 // Listar livros da biblioteca
 func listarLivros(w http.ResponseWriter, r *http.Request) {
-	//	setar cconfiguracao para apresentar retorno do json amigavel
-	w.Header().Set("content-type", "application/json")
-
 	encoder := json.NewEncoder(w)
 	encoder.Encode(Livros)
 }
 
 // Inclcuir livro na biblioteca
 func cadastrarLivro(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
 	// alatera o status da requisicao de 200(StatusOK) para 201(StatusCreated)
 	w.WriteHeader(http.StatusCreated)
 
@@ -75,32 +71,63 @@ func cadastrarLivro(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(novoLivro)
 }
 
+func deleteLivro(w http.ResponseWriter, r *http.Request) {
+	partes := strings.Split(r.URL.Path, "/")
+	id, erro := strconv.Atoi(partes[2])
+
+	if erro != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	indiceDoLivro := -1
+	for indice, livro := range Livros {
+		if livro.Id == id {
+			indiceDoLivro = indice
+			break
+		}
+	}
+
+	if indiceDoLivro < 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	ladoEsquerdo := Livros[0:indiceDoLivro]
+	ladoDireito := Livros[indiceDoLivro+1 : len(Livros)]
+
+	Livros = append(ladoEsquerdo, ladoDireito...)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // Define rotas / operacoes da API
 func rotearLivros(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		listarLivros(w, r)
-	} else if r.Method == "POST" {
-		// fmt.Println("Home")
-		cadastrarLivro(w, r)
+	w.Header().Set("content-type", "application/json")
+	partes := strings.Split(r.URL.Path, "/")
+
+	if len(partes) == 2 || len(partes) == 3 && partes[2] == "" {
+		if r.Method == "GET" {
+			listarLivros(w, r)
+		} else if r.Method == "POST" {
+			cadastrarLivro(w, r)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	} else if len(partes) == 3 || len(partes) == 4 && partes[3] == "" {
+		if r.Method == "GET" {
+			buscarLivro(w, r)
+		} else if r.Method == "DELETE" {
+			deleteLivro(w, r)
+		}
 	}
+
 }
 
 // pesquisar livro por Id e apresentar
 func buscarLivro(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
 	partes := strings.Split(r.URL.Path, "/")
-	// fmt.Printf("Parte 2: %s", partes[2])
-	// fmt.Printf("Quantas partes: %d", len(partes))
-
-	if len(partes) > 3 {
-		w.WriteHeader(http.StatusNotFound)
-		// fmt.Println("passei")
-		return
-	}
-
 	id, _ := strconv.Atoi(partes[2])
-	// fmt.Println(id)
-	// fmt.Println(partes[2])
 
 	for _, livro := range Livros {
 		if livro.Id == id {
@@ -117,7 +144,8 @@ func configurarRotas() {
 	http.HandleFunc("/livros", rotearLivros)
 
 	// e.g. /livros/123
-	http.HandleFunc("/livros/", buscarLivro)
+	// http.HandleFunc("/livros/", buscarLivro)
+	http.HandleFunc("/livros/", rotearLivros)
 
 }
 
